@@ -1,6 +1,6 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.1.5/AI._v1.1.5.zip",
-  "changelog": "1.1.5 - 新增调试日志功能，修复Logo显示问题"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.1.6/AI._v1.1.6.zip",
+  "changelog": "1.1.6 - 增强更新日志，修复更新文件替换问题"
 }
