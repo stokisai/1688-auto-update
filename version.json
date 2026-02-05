@@ -1,6 +1,6 @@
 {
-  "version": "1.1.7",
+  "version": "1.1.8",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.1.7/AI._v1.1.7.zip",
-  "changelog": "1.1.7 - 修复更新后重启功能无效的问题"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.1.8/AI._v1.1.8.zip",
+  "changelog": "1.1.8 - 新增图片预览功能，支持点击/滚轮/键盘切换"
 }
