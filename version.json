@@ -1,6 +1,6 @@
 {
-  "version": "1.1.8",
+  "version": "1.2.6",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.1.8/AI._v1.1.8.zip",
-  "changelog": "1.1.8 - 新增图片预览功能，支持点击/滚轮/键盘切换"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.2.6/AI._v1.2.6.zip",
+  "changelog": "1.2.6 - 改进Chrome浏览器检测提示，添加工作流调试日志"
 }
