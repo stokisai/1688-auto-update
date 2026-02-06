@@ -1,6 +1,6 @@
 {
-  "version": "1.3.3",
+  "version": "1.3.4",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.3.3/AI._v1.3.3.zip",
-  "changelog": "1.3.3 - 图库新增一键勾选和一键清除功能，修复结果返回失败问题"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.3.4/AI._v1.3.4.zip",
+  "changelog": "1.3.4 - 修复自动更新时本地版本未被替换的问题"
 }
