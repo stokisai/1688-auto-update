@@ -1,6 +1,6 @@
 {
-  "version": "1.4.1",
+  "version": "1.4.2",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.4.1/AI._v1.4.1.zip",
-  "changelog": "1.4.1 - 更新时隐藏终端窗口，显示进度提示；弹窗居中显示"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.4.2/AI._v1.4.2.zip",
+  "changelog": "1.4.2 - 修复结果图下载/打开文件夹按钮失效bug；新增历史图库；增强图片信息显示"
 }
