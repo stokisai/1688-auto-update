@@ -1,6 +1,6 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.4.0/AI._v1.4.0.zip",
-  "changelog": "1.4.0 - 日志查看器新增复制全部按钮"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v1.4.1/AI._v1.4.1.zip",
+  "changelog": "1.4.1 - 更新时隐藏终端窗口，显示进度提示；弹窗居中显示"
 }
