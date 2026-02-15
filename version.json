@@ -1,6 +1,6 @@
 {
-  "version": "2.0.1",
+  "version": "2.1.1",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.0.1/AI._v2.0.1.zip",
-  "changelog": "2.0.1 - 删减多余图床及图片链接配置；优化ComfyUI工作流选择下拉菜单位置"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.1.1/AI._v2.1.1.zip",
+  "changelog": "2.1.1 - 修复所有页面乱码问题；图库自动刷新功能；图库添加提示词输入；优化图片信息显示（蓝色尺寸+绿色文件大小）；点击图片可选中；图库卡片布局优化"
 }

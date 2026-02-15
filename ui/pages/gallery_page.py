@@ -1,5 +1,5 @@
 """
-图库页 — 浏览采集图片 + 批量 ComfyUI 生成 + 结果管理
+图库页 - 浏览采集图片 + 批量 ComfyUI 生成 + 结果管理
 """
 
 import os
@@ -138,7 +138,7 @@ class GalleryPage(QWidget):
         header.addWidget(del_src)
         tl.addLayout(header)
 
-        self._source_grid = GalleryGrid(columns=8, thumb_size=300, checkable=True)
+        self._source_grid = GalleryGrid(columns=3, thumb_size=500, checkable=True)
         self._source_grid.image_clicked.connect(self._preview_source)
         tl.addWidget(self._source_grid, stretch=1)
 
@@ -264,7 +264,7 @@ class GalleryPage(QWidget):
         res_header.addWidget(del_sel)
         bl.addLayout(res_header)
 
-        self._result_grid = GalleryGrid(columns=8, thumb_size=300, checkable=True)
+        self._result_grid = GalleryGrid(columns=3, thumb_size=500, checkable=True)
         self._result_grid.image_clicked.connect(self._preview_result)
         bl.addWidget(self._result_grid, stretch=1)
 
@@ -713,7 +713,7 @@ class _PreviewDialog(QWidget):
                 dim_lbl = QLabel("图片尺寸:")
                 dim_lbl.setFont(Theme.font_body())
                 info_layout.addWidget(dim_lbl, row, 0)
-                dim_val = QLabel(f"{img.width} × {img.height} 像素")
+                dim_val = QLabel(f"{img.width} x {img.height} 像素")
                 dim_val.setFont(Theme.font_body())
                 info_layout.addWidget(dim_val, row, 1)
 
@@ -1085,7 +1085,7 @@ class ImageEditorDialog(QDialog):
         # 更新尺寸显示
         if self._current is not None:
             h, w = self._current.shape[:2]
-            self._size_label.setText(f"当前尺寸: {w} × {h} 像素")
+            self._size_label.setText(f"当前尺寸: {w} x {h} 像素")
 
             # 更新缩放面板的默认值
             if index == 1:  # 缩放工具
@@ -1113,7 +1113,7 @@ class ImageEditorDialog(QDialog):
         self._preview_label.setPixmap(scaled)
 
         # 更新尺寸显示
-        self._size_label.setText(f"当前尺寸: {w} × {h} 像素")
+        self._size_label.setText(f"当前尺寸: {w} x {h} 像素")
 
     def _on_resize_width_changed(self, value: int):
         """宽度改变时，如果保持比例则更新高度"""
@@ -1339,7 +1339,7 @@ class BatchEditDialog(QDialog):
         layout.addWidget(title)
 
         if self._first_image_size:
-            size_label = QLabel(f"首张尺寸: {self._first_image_size[0]} × {self._first_image_size[1]} 像素")
+            size_label = QLabel(f"首张尺寸: {self._first_image_size[0]} x {self._first_image_size[1]} 像素")
             size_label.setFont(Theme.font_body())
             layout.addWidget(size_label)
 
@@ -1471,7 +1471,7 @@ class BatchEditDialog(QDialog):
         layout.addLayout(pct_row)
 
         # 分隔线
-        sep = QLabel("— 或 —")
+        sep = QLabel("- 或 -")
         sep.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(sep)
 

@@ -1,5 +1,5 @@
 """
-本地图生文生图页 — 本地文件夹浏览 → 递归扫描 → ComfyUI 批量处理 → 图库编辑
+本地图生文生图页 - 本地文件夹浏览 -> 递归扫描 -> ComfyUI 批量处理 -> 图库编辑
 """
 
 import os
@@ -174,7 +174,7 @@ class PromptEditorDialog(QDialog):
         self._result_edit.setReadOnly(True)
         layout.addWidget(self._result_edit, stretch=2)
 
-        # 替换按钮（仅在中文→英文时显示）
+        # 替换按钮（仅在中文->英文时显示）
         replace_row = QHBoxLayout()
         self._replace_btn = QPushButton("替换为翻译结果")
         self._replace_btn.setIcon(Icons.sync())
@@ -218,7 +218,7 @@ class PromptEditorDialog(QDialog):
         # 确定目标语言
         target_lang = "en" if source_lang == "zh" else "zh"
 
-        log_info(f"[提示词编辑器] 开始翻译: {source_lang} → {target_lang}, 长度: {len(text)}")
+        log_info(f"[提示词编辑器] 开始翻译: {source_lang} -> {target_lang}, 长度: {len(text)}")
 
         # 显示翻译状态
         self._translate_btn.setEnabled(False)
@@ -239,9 +239,9 @@ class PromptEditorDialog(QDialog):
         self._result_edit.setText(result)
         self._translated = result
 
-        log_info(f"[提示词编辑器] 翻译完成: {source_lang} → {'en' if source_lang == 'zh' else 'zh'}")
+        log_info(f"[提示词编辑器] 翻译完成: {source_lang} -> {'en' if source_lang == 'zh' else 'zh'}")
 
-        # 仅在中文→英文时显示替换按钮
+        # 仅在中文->英文时显示替换按钮
         if source_lang == "zh":
             self._replace_btn.setVisible(True)
 
@@ -295,9 +295,9 @@ class _LocalBatchWorker(QThread):
 
     根据 imag2imag-fileviewer-comfyui skill 的规范：
     - 文件名特殊规则：
-      - a.jpg（不含扩展名为 a）→ 完全跳过，不处理不输出
-      - b.jpg（不含扩展名为 b）→ 跳过 ComfyUI，直接复制原图到输出
-      - 其他 → 正常走 ComfyUI 图生图
+      - a.jpg（不含扩展名为 a）-> 完全跳过，不处理不输出
+      - b.jpg（不含扩展名为 b）-> 跳过 ComfyUI，直接复制原图到输出
+      - 其他 -> 正常走 ComfyUI 图生图
     - 保持源文件夹的相对路径结构
     """
     progress = Signal(str, str)
@@ -566,6 +566,15 @@ class LocalBrowsePage(QWidget):
         self._stop_btn.setToolTip("批量处理开始后可点击停止")
         batch_row.addWidget(self._stop_btn)
 
+        self._gallery_btn = QPushButton("查看图库")
+        self._gallery_btn.setIcon(Icons.image())
+        self._gallery_btn.setProperty("class", "primary")
+        self._gallery_btn.setFixedWidth(120)
+        self._gallery_btn.clicked.connect(self._open_gallery)
+        self._gallery_btn.setVisible(False)  # 初始隐藏
+        self._gallery_btn.setToolTip("查看已处理的图片")
+        batch_row.addWidget(self._gallery_btn)
+
         self._status_lbl = QLabel("状态: 就绪")
         self._status_lbl.setFont(Theme.font_body())
         batch_row.addWidget(self._status_lbl)
@@ -799,6 +808,9 @@ class LocalBrowsePage(QWidget):
         self._log_and_display("=" * 50, "info")
 
         if self._output_images:
+            # 显示查看图库按钮
+            self._gallery_btn.setVisible(True)
+
             reply = QMessageBox.question(
                 self, "处理完成",
                 f"已完成 {len(self._output_images)} 张图片的处理\n\n是否打开图库查看结果？",
@@ -926,6 +938,19 @@ class ImageGalleryDialog(QDialog):
         self._load_workflows()
         reprocess_row.addWidget(self._workflow_combo)
 
+        # 提示词输入框
+        prompt_lbl = QLabel("提示词:")
+        prompt_lbl.setFont(Theme.font_body())
+        reprocess_row.addWidget(prompt_lbl)
+
+        self._gallery_prompt_input = QLineEdit()
+        self._gallery_prompt_input.setPlaceholderText("点击编辑提示词（可选）")
+        self._gallery_prompt_input.setFixedWidth(300)
+        self._gallery_prompt_input.setReadOnly(True)
+        self._gallery_prompt_input.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._gallery_prompt_input.mousePressEvent = lambda e: self._open_gallery_prompt_editor()
+        reprocess_row.addWidget(self._gallery_prompt_input)
+
         self._reprocess_btn = QPushButton("重新处理选中图片 (0 张)")
         self._reprocess_btn.setIcon(Icons.refresh())
         self._reprocess_btn.setProperty("class", "success")
@@ -1033,9 +1058,16 @@ class ImageGalleryDialog(QDialog):
         col = len(self._thumbnails) % 8
 
         cell_widget = QWidget()
+        cell_widget.setStyleSheet("""
+            QWidget {
+                background-color: #2D2D2D;
+                border: 1px solid #444;
+                border-radius: 8px;
+            }
+        """)
         cell_layout = QVBoxLayout(cell_widget)
         cell_layout.setSpacing(5)
-        cell_layout.setContentsMargins(5, 5, 5, 5)
+        cell_layout.setContentsMargins(8, 8, 8, 8)
 
         # 复选框
         checkbox = QCheckBox()
@@ -1047,16 +1079,9 @@ class ImageGalleryDialog(QDialog):
         img_label.setPixmap(pixmap)
         img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         img_label.setFixedSize(300, 300)  # 改为300px
-        img_label.setStyleSheet("border: 1px solid #444; background-color: #2D2D2D;")
+        img_label.setStyleSheet("border: none; background-color: transparent;")
         img_label.clicked.connect(lambda p=path: self._show_image_info(p))
         cell_layout.addWidget(img_label)
-
-        # 编辑按钮
-        edit_btn = QPushButton("编辑")
-        edit_btn.setIcon(Icons.palette())
-        edit_btn.setFixedWidth(100)
-        edit_btn.clicked.connect(lambda checked=False, p=path: self._edit_single(p))
-        cell_layout.addWidget(edit_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # 文件名
         name_label = QLabel(Path(path).name)
@@ -1065,12 +1090,67 @@ class ImageGalleryDialog(QDialog):
         name_label.setWordWrap(True)
         cell_layout.addWidget(name_label)
 
+        # 编辑按钮
+        edit_btn = QPushButton("编辑")
+        edit_btn.setIcon(Icons.palette())
+        edit_btn.setFixedWidth(100)
+        edit_btn.clicked.connect(lambda checked=False, p=path: self._edit_single(p))
+        cell_layout.addWidget(edit_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
         self._grid_layout.addWidget(cell_widget, row, col)
         self._thumbnails[path] = {"checkbox": checkbox, "widget": cell_widget}
 
     def _on_thumbnails_finished(self):
         """所有缩略图加载完成"""
         pass
+
+    def _refresh_thumbnails(self, paths_to_refresh=None):
+        """刷新缩略图
+
+        Args:
+            paths_to_refresh: 需要刷新的图片路径列表，如果为 None 则刷新所有选中的图片
+        """
+        if paths_to_refresh is None:
+            paths_to_refresh = list(self._selected)
+
+        if not paths_to_refresh:
+            return
+
+        log_info(f"[图库] 刷新 {len(paths_to_refresh)} 张缩略图")
+
+        # 重新加载这些图片的缩略图
+        for path in paths_to_refresh:
+            if path in self._thumbnails:
+                try:
+                    # 清除 Qt 的图片缓存
+                    from PySide6.QtGui import QPixmapCache
+                    QPixmapCache.clear()
+
+                    # 强制重新加载图片（使用时间戳避免缓存）
+                    import time
+                    cache_buster = f"?t={int(time.time() * 1000)}"
+
+                    # 重新加载图片
+                    pixmap = QPixmap(path)
+                    if not pixmap.isNull():
+                        pixmap = pixmap.scaled(
+                            300, 300,
+                            Qt.AspectRatioMode.KeepAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation
+                        )
+
+                        # 找到对应的 widget 并更新图片
+                        widget = self._thumbnails[path]["widget"]
+                        # 找到 ClickableLabel (第二个子控件，索引1)
+                        img_label = widget.layout().itemAt(1).widget()
+                        if img_label:
+                            # 先清空再设置新图片
+                            img_label.clear()
+                            img_label.setPixmap(pixmap)
+                            img_label.update()  # 强制更新显示
+                            log_info(f"[图库] 已刷新: {Path(path).name}")
+                except Exception as e:
+                    log_error(f"[图库] 刷新缩略图失败 {Path(path).name}: {e}")
 
     def _on_checkbox_changed(self, path: str, state: int):
         """复选框状态改变"""
@@ -1125,7 +1205,7 @@ class ImageGalleryDialog(QDialog):
             time_str = create_time.strftime("%Y-%m-%d %H:%M:%S")
 
             # 更新信息面板
-            info_text = f"""• 尺寸: {width} × {height} 像素
+            info_text = f"""• 尺寸: {width} x {height} 像素
 • 文件大小: {size_str}
 • 文件类型: {file_type}
 • 贴建时间: {time_str}
@@ -1136,19 +1216,31 @@ class ImageGalleryDialog(QDialog):
         except Exception as e:
             self._info_label.setText(f"无法读取图片信息: {str(e)}")
 
+    def _open_gallery_prompt_editor(self):
+        """打开图库提示词编辑器"""
+        current_prompt = self._gallery_prompt_input.text()
+        editor = PromptEditorDialog(current_prompt, self.config, self)
+        if editor.exec():
+            new_prompt = editor.get_prompt()
+            self._gallery_prompt_input.setText(new_prompt)
+            log_info(f"[图库] 提示词已更新: {new_prompt[:50]}...")
+
     def _reprocess_selected(self):
         """重新处理选中的图片"""
         if not self._selected:
             return
 
         workflow = self._workflow_combo.currentData()
-        log_info(f"[图库] 请求重处理 {len(self._selected)} 张图片，工作流: {workflow if workflow else '默认'}")
+        prompt = self._gallery_prompt_input.text().strip()
+        log_info(f"[图库] 请求重处理 {len(self._selected)} 张图片，工作流: {workflow if workflow else '默认'}，提示词: {prompt[:50] if prompt else '无'}")
 
         # 确认对话框
+        prompt_info = f"提示词: {prompt[:50]}...\n" if prompt else "提示词: 无\n"
         reply = QMessageBox.question(
             self, "确认重处理",
             f"确定要重新处理选中的 {len(self._selected)} 张图片吗？\n\n"
-            f"工作流: {workflow if workflow else '默认'}\n\n"
+            f"工作流: {workflow if workflow else '默认'}\n"
+            f"{prompt_info}\n"
             f"注意：处理后将覆盖原文件！",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
@@ -1166,8 +1258,8 @@ class ImageGalleryDialog(QDialog):
         # 禁用重处理按钮
         self._reprocess_btn.setEnabled(False)
 
-        # 启动重处理线程
-        self._reprocess_worker = ReprocessWorkerThread(self.config, list(self._selected), workflow)
+        # 启动重处理线程（传入提示词）
+        self._reprocess_worker = ReprocessWorkerThread(self.config, list(self._selected), workflow, prompt if prompt else None)
         self._reprocess_worker.progress_updated.connect(self._on_reprocess_progress)
         self._reprocess_worker.all_done.connect(self._on_reprocess_done)
         self._reprocess_worker.error_occurred.connect(self._on_reprocess_error)
@@ -1185,9 +1277,13 @@ class ImageGalleryDialog(QDialog):
         self._progress_lbl.setVisible(False)
         self._reprocess_btn.setEnabled(True)
 
+        # 自动刷新选中图片的缩略图
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(500, lambda: self._refresh_thumbnails())
+
         if success_count == total_count:
             log_info(f"[图库] 重处理完成: {success_count}/{total_count} 张成功")
-            QMessageBox.information(self, "完成", f"重处理完成！\n成功: {success_count}/{total_count} 张\n\n请关闭图库后重新打开查看更新")
+            QMessageBox.information(self, "完成", f"重处理完成！\n成功: {success_count}/{total_count} 张\n\n图片已自动刷新")
         else:
             log_warning(f"[图库] 重处理部分失败: {success_count}/{total_count} 张成功")
             QMessageBox.warning(self, "完成", f"重处理完成，但部分图片处理失败\n成功: {success_count}/{total_count} 张\n\n请查看日志了解详情")
@@ -1243,9 +1339,13 @@ class ImageGalleryDialog(QDialog):
         self._progress_bar.setVisible(False)
         self._progress_lbl.setVisible(False)
 
+        # 自动刷新选中图片的缩略图
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(500, lambda: self._refresh_thumbnails())
+
         if success:
             log_info("[图库] 批量编辑完成")
-            QMessageBox.information(self, "完成", "批量编辑完成！\n请关闭图库后重新打开查看更新")
+            QMessageBox.information(self, "完成", "批量编辑完成！\n图片已自动刷新")
         else:
             log_warning("[图库] 批量编辑部分失败")
             QMessageBox.warning(self, "完成", "批量编辑完成，但部分图片处理失败\n请查看日志了解详情")
@@ -1262,7 +1362,12 @@ class ImageGalleryDialog(QDialog):
     def _on_image_edited(self, path: str):
         """图片编辑后刷新缩略图"""
         log_info(f"[图库] 图片已编辑，刷新缩略图: {Path(path).name}")
-        QMessageBox.information(self, "提示", "图片已保存，请关闭图库后重新打开查看更新")
+
+        # 自动刷新这张图片的缩略图
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(500, lambda: self._refresh_thumbnails([path]))
+
+        QMessageBox.information(self, "提示", "图片已保存并自动刷新")
 
     def _upload_to_oss(self):
         """上传图片到阿里云 OSS"""
@@ -1658,7 +1763,7 @@ class ImageEditorDialog(QDialog):
         # 更新尺寸显示
         if self._current is not None:
             h, w = self._current.shape[:2]
-            self._size_label.setText(f"当前尺寸: {w} × {h} 像素")
+            self._size_label.setText(f"当前尺寸: {w} x {h} 像素")
 
             # 更新缩放面板的默认值
             if index == 1:  # 缩放工具
@@ -1686,7 +1791,7 @@ class ImageEditorDialog(QDialog):
         self._preview_label.setPixmap(scaled)
 
         # 更新尺寸显示
-        self._size_label.setText(f"当前尺寸: {w} × {h} 像素")
+        self._size_label.setText(f"当前尺寸: {w} x {h} 像素")
 
     def _on_resize_width_changed(self, value: int):
         """宽度改变时，如果保持比例则更新高度"""
@@ -1904,7 +2009,7 @@ class BatchEditDialog(QDialog):
         layout.addWidget(title)
 
         if self._first_image_size:
-            size_label = QLabel(f"首张尺寸: {self._first_image_size[0]} × {self._first_image_size[1]} 像素")
+            size_label = QLabel(f"首张尺寸: {self._first_image_size[0]} x {self._first_image_size[1]} 像素")
             size_label.setFont(Theme.font_body())
             layout.addWidget(size_label)
 
@@ -2036,7 +2141,7 @@ class BatchEditDialog(QDialog):
         layout.addLayout(pct_row)
 
         # 分隔线
-        sep = QLabel("— 或 —")
+        sep = QLabel("- 或 -")
         sep.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(sep)
 
@@ -2172,11 +2277,12 @@ class ReprocessWorkerThread(QThread):
     all_done = Signal(int, int)  # success_count, total_count
     error_occurred = Signal(str)
 
-    def __init__(self, config, paths, workflow, parent=None):
+    def __init__(self, config, paths, workflow, prompt=None, parent=None):
         super().__init__(parent)
         self._config = config
         self._paths = paths
         self._workflow = workflow
+        self._prompt = prompt
         self._stop = False
 
     def stop(self):
@@ -2220,8 +2326,8 @@ class ReprocessWorkerThread(QThread):
                 self.progress_updated.emit(i + 1, total, filename)
 
                 try:
-                    # 重新处理图片（覆盖原文件）
-                    result = client.image_to_image(path, None, output_dir=str(Path(path).parent))
+                    # 重新处理图片（覆盖原文件），使用提示词
+                    result = client.image_to_image(path, self._prompt, output_dir=str(Path(path).parent))
                     if result:
                         # 如果生成的文件名不同，需要重命名
                         if result != path:
