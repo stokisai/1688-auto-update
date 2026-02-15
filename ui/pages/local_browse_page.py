@@ -549,6 +549,7 @@ class LocalBrowsePage(QWidget):
         self._start_btn.setFixedWidth(150)
         self._start_btn.clicked.connect(self._start_batch)
         self._start_btn.setEnabled(False)
+        self._start_btn.setToolTip("请先点击'扫描并处理'按钮扫描图片")
         batch_row.addWidget(self._start_btn)
 
         self._stop_btn = QPushButton("停止")
@@ -557,6 +558,7 @@ class LocalBrowsePage(QWidget):
         self._stop_btn.setFixedWidth(100)
         self._stop_btn.clicked.connect(self._stop_batch)
         self._stop_btn.setEnabled(False)
+        self._stop_btn.setToolTip("批量处理开始后可点击停止")
         batch_row.addWidget(self._stop_btn)
 
         self._status_lbl = QLabel("状态: 就绪")
