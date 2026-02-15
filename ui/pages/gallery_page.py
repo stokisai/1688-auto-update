@@ -138,7 +138,7 @@ class GalleryPage(QWidget):
         header.addWidget(del_src)
         tl.addLayout(header)
 
-        self._source_grid = GalleryGrid(columns=8, thumb_size=150, checkable=True)
+        self._source_grid = GalleryGrid(columns=8, thumb_size=300, checkable=True)
         self._source_grid.image_clicked.connect(self._preview_source)
         tl.addWidget(self._source_grid, stretch=1)
 
@@ -264,7 +264,7 @@ class GalleryPage(QWidget):
         res_header.addWidget(del_sel)
         bl.addLayout(res_header)
 
-        self._result_grid = GalleryGrid(columns=8, thumb_size=150, checkable=True)
+        self._result_grid = GalleryGrid(columns=8, thumb_size=300, checkable=True)
         self._result_grid.image_clicked.connect(self._preview_result)
         bl.addWidget(self._result_grid, stretch=1)
 

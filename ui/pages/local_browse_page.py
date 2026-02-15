@@ -543,7 +543,7 @@ class LocalBrowsePage(QWidget):
         grid_header.addStretch()
         gl.addLayout(grid_header)
 
-        self._gallery_grid = GalleryGrid(columns=8, thumb_size=150, checkable=True, max_images=0)
+        self._gallery_grid = GalleryGrid(columns=8, thumb_size=300, checkable=True, max_images=0)
         gl.addWidget(self._gallery_grid, stretch=1)
 
         # 批量处理按钮
@@ -1022,7 +1022,7 @@ class ImageGalleryDialog(QDialog):
 
     def _load_thumbnails(self):
         """异步加载缩略图"""
-        self._loader = ThumbnailLoader(self._image_paths, size=150)
+        self._loader = ThumbnailLoader(self._image_paths, size=300)
         self._loader.thumbnail_loaded.connect(self._on_thumbnail_loaded)
         self._loader.finished.connect(self._on_thumbnails_finished)
         self._loader.start()
@@ -1046,7 +1046,7 @@ class ImageGalleryDialog(QDialog):
         img_label = ClickableLabel()
         img_label.setPixmap(pixmap)
         img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        img_label.setFixedSize(150, 150)  # 改为150px
+        img_label.setFixedSize(300, 300)  # 改为300px
         img_label.setStyleSheet("border: 1px solid #444; background-color: #2D2D2D;")
         img_label.clicked.connect(lambda p=path: self._show_image_info(p))
         cell_layout.addWidget(img_label)
