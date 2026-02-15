@@ -138,7 +138,7 @@ class GalleryPage(QWidget):
         header.addWidget(del_src)
         tl.addLayout(header)
 
-        self._source_grid = GalleryGrid(columns=6, thumb_size=150, checkable=True)
+        self._source_grid = GalleryGrid(columns=4, thumb_size=200, checkable=True)
         self._source_grid.image_clicked.connect(self._preview_source)
         tl.addWidget(self._source_grid, stretch=1)
 
@@ -264,7 +264,7 @@ class GalleryPage(QWidget):
         res_header.addWidget(del_sel)
         bl.addLayout(res_header)
 
-        self._result_grid = GalleryGrid(columns=5, thumb_size=170, checkable=True)
+        self._result_grid = GalleryGrid(columns=4, thumb_size=220, checkable=True)
         self._result_grid.image_clicked.connect(self._preview_result)
         bl.addWidget(self._result_grid, stretch=1)
 
@@ -622,69 +622,112 @@ class _PreviewDialog(QWidget):
 
         self._dlg = QDialog(parent)
         self._dlg.setWindowTitle(Path(path).name)
-        self._dlg.resize(1100, 750)
+        self._dlg.resize(1400, 900)  # 增大尺寸
 
-        main_layout = QHBoxLayout(self._dlg)
+        # 主布局：垂直布局（上图下信息）
+        main_layout = QVBoxLayout(self._dlg)
 
-        # 左侧：图片预览
-        viewer = ImageViewer(max_size=800)
-        viewer.set_image(path, max_size=800)
+        # 上部：图片预览
+        viewer = ImageViewer(max_size=1000)
+        viewer.set_image(path, max_size=1000)
         main_layout.addWidget(viewer, stretch=3)
 
-        # 右侧：详细信息面板
-        info_panel = QFrame()
-        info_panel.setFrameShape(QFrame.Shape.StyledPanel)
-        info_panel.setMaximumWidth(300)
-        info_layout = QVBoxLayout(info_panel)
-
-        # 标题
-        title_lbl = QLabel("图片信息")
-        title_lbl.setFont(Theme.font_title())
-        info_layout.addWidget(title_lbl)
+        # 下部：详细信息面板（平铺显示）
+        info_frame = QFrame()
+        info_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        info_frame.setStyleSheet(f"background-color: {Theme.COLOR_INPUT_BG}; border-radius: 6px; padding: 12px;")
+        info_layout = QGridLayout(info_frame)
+        info_layout.setSpacing(12)
 
         # 获取图片信息
         p = Path(path)
         stat = p.stat()
 
-        # 文件信息
-        info_text = []
-        info_text.append(f"<b>文件名:</b><br>{p.name}")
-        info_text.append(f"<b>文件大小:</b><br>{self._format_size(stat.st_size)}")
-        info_text.append(f"<b>修改时间:</b><br>{datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')}")
+        # 使用网格布局平铺信息
+        row = 0
 
-        # 图片尺寸
+        # 第一行：文件名（跨两列）
+        name_lbl = QLabel("文件名:")
+        name_lbl.setFont(Theme.font_body())
+        info_layout.addWidget(name_lbl, row, 0)
+        name_val = QLabel(p.name)
+        name_val.setFont(Theme.font_body())
+        name_val.setWordWrap(True)
+        info_layout.addWidget(name_val, row, 1, 1, 3)
+        row += 1
+
+        # 第二行：文件大小、修改时间
+        size_lbl = QLabel("文件大小:")
+        size_lbl.setFont(Theme.font_body())
+        info_layout.addWidget(size_lbl, row, 0)
+        size_val = QLabel(self._format_size(stat.st_size))
+        size_val.setFont(Theme.font_body())
+        info_layout.addWidget(size_val, row, 1)
+
+        time_lbl = QLabel("修改时间:")
+        time_lbl.setFont(Theme.font_body())
+        info_layout.addWidget(time_lbl, row, 2)
+        time_val = QLabel(datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S'))
+        time_val.setFont(Theme.font_body())
+        info_layout.addWidget(time_val, row, 3)
+        row += 1
+
+        # 第三行：图片尺寸、格式、颜色模式
         try:
             from PIL import Image
             with Image.open(path) as img:
-                info_text.append(f"<b>图片尺寸:</b><br>{img.width} × {img.height} 像素")
-                info_text.append(f"<b>图片格式:</b><br>{img.format}")
-                info_text.append(f"<b>颜色模式:</b><br>{img.mode}")
+                # 图片尺寸
+                dim_lbl = QLabel("图片尺寸:")
+                dim_lbl.setFont(Theme.font_body())
+                info_layout.addWidget(dim_lbl, row, 0)
+                dim_val = QLabel(f"{img.width} × {img.height} 像素")
+                dim_val.setFont(Theme.font_body())
+                info_layout.addWidget(dim_val, row, 1)
 
-                # EXIF 信息
+                # 图片格式
+                fmt_lbl = QLabel("图片格式:")
+                fmt_lbl.setFont(Theme.font_body())
+                info_layout.addWidget(fmt_lbl, row, 2)
+                fmt_val = QLabel(str(img.format))
+                fmt_val.setFont(Theme.font_body())
+                info_layout.addWidget(fmt_val, row, 3)
+                row += 1
+
+                # 颜色模式
+                mode_lbl = QLabel("颜色模式:")
+                mode_lbl.setFont(Theme.font_body())
+                info_layout.addWidget(mode_lbl, row, 0)
+                mode_val = QLabel(img.mode)
+                mode_val.setFont(Theme.font_body())
+                info_layout.addWidget(mode_val, row, 1)
+
+                # EXIF 信息（如果有）
                 exif = img.getexif()
-                if exif:
-                    info_text.append("<b>EXIF 信息:</b>")
-                    for key, val in list(exif.items())[:5]:  # 只显示前5个
-                        info_text.append(f"  {key}: {val}")
+                if exif and len(exif) > 0:
+                    exif_lbl = QLabel("EXIF:")
+                    exif_lbl.setFont(Theme.font_body())
+                    info_layout.addWidget(exif_lbl, row, 2)
+                    exif_val = QLabel(f"{len(exif)} 个标签")
+                    exif_val.setFont(Theme.font_body())
+                    info_layout.addWidget(exif_val, row, 3)
+
         except Exception as e:
-            info_text.append(f"<b>无法读取图片信息</b><br>{str(e)}")
+            error_lbl = QLabel(f"无法读取图片信息: {str(e)}")
+            error_lbl.setFont(Theme.font_body())
+            error_lbl.setStyleSheet("color: #FF6B6B;")
+            info_layout.addWidget(error_lbl, row, 0, 1, 4)
 
-        # 显示信息
-        info_label = QLabel("<br><br>".join(info_text))
-        info_label.setWordWrap(True)
-        info_label.setTextFormat(Qt.TextFormat.RichText)
-        info_label.setFont(Theme.font_body())
-        info_layout.addWidget(info_label)
+        main_layout.addWidget(info_frame, stretch=1)
 
-        info_layout.addStretch()
-
-        # 关闭按钮
+        # 底部：关闭按钮
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
         close_btn = QPushButton("关闭")
         close_btn.setIcon(Icons.close())
+        close_btn.setFixedWidth(120)
         close_btn.clicked.connect(self._dlg.close)
-        info_layout.addWidget(close_btn)
-
-        main_layout.addWidget(info_panel, stretch=1)
+        btn_layout.addWidget(close_btn)
+        main_layout.addLayout(btn_layout)
 
     def _format_size(self, size_bytes: int) -> str:
         """格式化文件大小"""
