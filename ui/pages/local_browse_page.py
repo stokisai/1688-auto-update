@@ -543,7 +543,7 @@ class LocalBrowsePage(QWidget):
         grid_header.addStretch()
         gl.addLayout(grid_header)
 
-        self._gallery_grid = GalleryGrid(columns=4, thumb_size=200, checkable=True, max_images=0)
+        self._gallery_grid = GalleryGrid(columns=8, thumb_size=150, checkable=True, max_images=0)
         gl.addWidget(self._gallery_grid, stretch=1)
 
         # 批量处理按钮
