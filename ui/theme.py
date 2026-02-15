@@ -183,6 +183,12 @@ class Icons:
     @classmethod
     def close(cls): return cls._icon("mdi6.close")
 
+    @classmethod
+    def star(cls): return cls._icon("mdi6.star-outline")
+
+    @classmethod
+    def star_filled(cls): return cls._icon("mdi6.star", "#FFD700")
+
 
 # ── 导航图标映射 ──
 

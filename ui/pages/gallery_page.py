@@ -81,6 +81,9 @@ class GalleryPage(QWidget):
         super().__init__(parent)
         self.config = config
         self._worker = None
+        self._favorites_file = Path("./output/favorites.json")
+        self._favorites = self._load_favorites()
+        self._all_images = []  # 缓存所有图片路径
         self._build_ui()
 
     def _build_ui(self):
@@ -190,6 +193,28 @@ class GalleryPage(QWidget):
         res_lbl = QLabel("生成结果")
         res_lbl.setFont(Theme.font_title())
         res_header.addWidget(res_lbl)
+
+        # 搜索框
+        self._search_box = QLineEdit()
+        self._search_box.setPlaceholderText("搜索文件名...")
+        self._search_box.setMaximumWidth(200)
+        self._search_box.textChanged.connect(self._on_search_changed)
+        res_header.addWidget(self._search_box)
+
+        # 排序下拉菜单
+        sort_lbl = QLabel("排序:")
+        res_header.addWidget(sort_lbl)
+        self._sort_combo = QComboBox()
+        self._sort_combo.addItems(["默认", "文件名 A-Z", "文件名 Z-A", "最新优先", "最旧优先", "大到小", "小到大", "已标记优先"])
+        self._sort_combo.setMaximumWidth(150)
+        self._sort_combo.currentTextChanged.connect(self._on_sort_changed)
+        res_header.addWidget(self._sort_combo)
+
+        # 只显示已标记
+        self._show_favorites_only = QCheckBox("只显示已标记")
+        self._show_favorites_only.toggled.connect(self._on_filter_changed)
+        res_header.addWidget(self._show_favorites_only)
+
         res_header.addStretch()
 
         res_sel_all = QPushButton("全选")
@@ -211,6 +236,12 @@ class GalleryPage(QWidget):
         edit_btn.setFixedWidth(100)
         edit_btn.clicked.connect(self._edit_selected)
         res_header.addWidget(edit_btn)
+
+        favorite_btn = QPushButton("标记")
+        favorite_btn.setIcon(Icons.star())
+        favorite_btn.setFixedWidth(100)
+        favorite_btn.clicked.connect(self._toggle_favorite)
+        res_header.addWidget(favorite_btn)
 
         reprocess_btn = QPushButton("重处理")
         reprocess_btn.setIcon(Icons.play())
@@ -395,12 +426,19 @@ class GalleryPage(QWidget):
         """编辑进度更新"""
         self._log_panel.log(f"编辑中 {current}/{total}: {filename}", "info")
 
-    def _on_edit_done(self, success: bool):
+    def _on_edit_done(self, success_count: int, total_count: int, failed_files: list):
         """编辑完成"""
-        if success:
-            self._log_panel.log("批量编辑完成", "success")
+        if success_count == total_count:
+            self._log_panel.log(f"批量编辑完成: {success_count}/{total_count} 张成功", "success")
         else:
-            self._log_panel.log("批量编辑完成（部分失败）", "warning")
+            self._log_panel.log(f"批量编辑完成: {success_count}/{total_count} 张成功，{len(failed_files)} 张失败", "warning")
+            # 显示失败详情
+            if failed_files:
+                self._log_panel.log("失败详情:", "error")
+                for filename, error in failed_files[:10]:  # 最多显示10个
+                    self._log_panel.log(f"  • {filename}: {error}", "error")
+                if len(failed_files) > 10:
+                    self._log_panel.log(f"  ... 还有 {len(failed_files) - 10} 个失败", "error")
         self._refresh_results()
 
     def _on_image_edited(self, path: str):
@@ -457,18 +495,204 @@ class GalleryPage(QWidget):
         """重处理错误"""
         self._log_panel.log(f"重处理错误: {error}", "error")
 
+    # ── 收藏/标记功能 ──
+
+    def _load_favorites(self) -> set:
+        """加载收藏列表"""
+        if self._favorites_file.exists():
+            try:
+                import json
+                with open(self._favorites_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return set(data.get('favorites', []))
+            except Exception as e:
+                log_error(f"[收藏] 加载失败: {e}")
+        return set()
+
+    def _save_favorites(self):
+        """保存收藏列表"""
+        try:
+            import json
+            self._favorites_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self._favorites_file, 'w', encoding='utf-8') as f:
+                json.dump({'favorites': list(self._favorites)}, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            log_error(f"[收藏] 保存失败: {e}")
+
+    def _toggle_favorite(self):
+        """切换选中图片的收藏状态"""
+        paths = self._result_grid.selected_paths()
+        if not paths:
+            self._log_panel.log("请先选择图片", "warning")
+            return
+
+        added = 0
+        removed = 0
+        for path in paths:
+            if path in self._favorites:
+                self._favorites.remove(path)
+                removed += 1
+            else:
+                self._favorites.add(path)
+                added += 1
+
+        self._save_favorites()
+
+        if added > 0 and removed > 0:
+            self._log_panel.log(f"已标记 {added} 张，取消标记 {removed} 张", "success")
+        elif added > 0:
+            self._log_panel.log(f"已标记 {added} 张图片", "success")
+        else:
+            self._log_panel.log(f"已取消标记 {removed} 张图片", "success")
+
+        # 刷新显示（如果开启了"只显示已标记"）
+        if self._show_favorites_only.isChecked():
+            self._apply_filters()
+
+    def _is_favorite(self, path: str) -> bool:
+        """检查图片是否已收藏"""
+        return path in self._favorites
+
+    # ── 搜索和排序功能 ──
+
+    def _on_search_changed(self, text: str):
+        """搜索框文本改变"""
+        self._apply_filters()
+
+    def _on_sort_changed(self, sort_type: str):
+        """排序方式改变"""
+        self._apply_filters()
+
+    def _on_filter_changed(self, checked: bool):
+        """过滤条件改变"""
+        self._apply_filters()
+
+    def _apply_filters(self):
+        """应用搜索、排序和过滤"""
+        # 获取所有图片
+        output_dir = Path("./output/generated")
+        if not output_dir.exists():
+            return
+
+        all_images = []
+        for ext in [".jpg", ".jpeg", ".png", ".webp", ".bmp"]:
+            all_images.extend(output_dir.glob(f"*{ext}"))
+
+        total_count = len(all_images)
+
+        # 应用搜索过滤
+        search_text = self._search_box.text().strip().lower()
+        if search_text:
+            all_images = [img for img in all_images if search_text in img.name.lower()]
+
+        # 应用收藏过滤
+        if self._show_favorites_only.isChecked():
+            all_images = [img for img in all_images if str(img) in self._favorites]
+
+        # 应用排序
+        sort_type = self._sort_combo.currentText()
+        if sort_type == "文件名 A-Z":
+            all_images.sort(key=lambda x: x.name.lower())
+        elif sort_type == "文件名 Z-A":
+            all_images.sort(key=lambda x: x.name.lower(), reverse=True)
+        elif sort_type == "最新优先":
+            all_images.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+        elif sort_type == "最旧优先":
+            all_images.sort(key=lambda x: x.stat().st_mtime)
+        elif sort_type == "大到小":
+            all_images.sort(key=lambda x: x.stat().st_size, reverse=True)
+        elif sort_type == "小到大":
+            all_images.sort(key=lambda x: x.stat().st_size)
+        elif sort_type == "已标记优先":
+            all_images.sort(key=lambda x: (str(x) not in self._favorites, x.name.lower()))
+
+        # 更新图库显示
+        self._result_grid.set_images([str(img) for img in all_images])
+
+        # 显示结果统计
+        if len(all_images) < total_count:
+            self._log_panel.log(f"显示 {len(all_images)}/{total_count} 张图片", "info")
+
 
 class _PreviewDialog(QWidget):
-    """简单的图片预览弹窗。"""
+    """图片预览弹窗（带详细信息）"""
     def __init__(self, path, parent=None):
         from PySide6.QtWidgets import QDialog
+        from datetime import datetime
+
         self._dlg = QDialog(parent)
         self._dlg.setWindowTitle(Path(path).name)
-        self._dlg.resize(900, 700)
-        layout = QVBoxLayout(self._dlg)
+        self._dlg.resize(1100, 750)
+
+        main_layout = QHBoxLayout(self._dlg)
+
+        # 左侧：图片预览
         viewer = ImageViewer(max_size=800)
         viewer.set_image(path, max_size=800)
-        layout.addWidget(viewer)
+        main_layout.addWidget(viewer, stretch=3)
+
+        # 右侧：详细信息面板
+        info_panel = QFrame()
+        info_panel.setFrameShape(QFrame.Shape.StyledPanel)
+        info_panel.setMaximumWidth(300)
+        info_layout = QVBoxLayout(info_panel)
+
+        # 标题
+        title_lbl = QLabel("图片信息")
+        title_lbl.setFont(Theme.font_title())
+        info_layout.addWidget(title_lbl)
+
+        # 获取图片信息
+        p = Path(path)
+        stat = p.stat()
+
+        # 文件信息
+        info_text = []
+        info_text.append(f"<b>文件名:</b><br>{p.name}")
+        info_text.append(f"<b>文件大小:</b><br>{self._format_size(stat.st_size)}")
+        info_text.append(f"<b>修改时间:</b><br>{datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')}")
+
+        # 图片尺寸
+        try:
+            from PIL import Image
+            with Image.open(path) as img:
+                info_text.append(f"<b>图片尺寸:</b><br>{img.width} × {img.height} 像素")
+                info_text.append(f"<b>图片格式:</b><br>{img.format}")
+                info_text.append(f"<b>颜色模式:</b><br>{img.mode}")
+
+                # EXIF 信息
+                exif = img.getexif()
+                if exif:
+                    info_text.append("<b>EXIF 信息:</b>")
+                    for key, val in list(exif.items())[:5]:  # 只显示前5个
+                        info_text.append(f"  {key}: {val}")
+        except Exception as e:
+            info_text.append(f"<b>无法读取图片信息</b><br>{str(e)}")
+
+        # 显示信息
+        info_label = QLabel("<br><br>".join(info_text))
+        info_label.setWordWrap(True)
+        info_label.setTextFormat(Qt.TextFormat.RichText)
+        info_label.setFont(Theme.font_body())
+        info_layout.addWidget(info_label)
+
+        info_layout.addStretch()
+
+        # 关闭按钮
+        close_btn = QPushButton("关闭")
+        close_btn.setIcon(Icons.close())
+        close_btn.clicked.connect(self._dlg.close)
+        info_layout.addWidget(close_btn)
+
+        main_layout.addWidget(info_panel, stretch=1)
+
+    def _format_size(self, size_bytes: int) -> str:
+        """格式化文件大小"""
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size_bytes < 1024.0:
+                return f"{size_bytes:.2f} {unit}"
+            size_bytes /= 1024.0
+        return f"{size_bytes:.2f} TB"
 
     def exec(self):
         self._dlg.exec()
@@ -916,7 +1140,8 @@ class BatchEditWorkerThread(QThread):
     """批量编辑工作线程"""
 
     progress_updated = Signal(int, int, str)  # current, total, filename
-    all_done = Signal(bool)  # success
+    all_done = Signal(int, int, list)  # success_count, total_count, failed_files
+    error_occurred = Signal(str, str)  # filename, error_message
 
     def __init__(self, paths, operation, params, parent=None):
         super().__init__(parent)
@@ -934,6 +1159,7 @@ class BatchEditWorkerThread(QThread):
 
             total = len(self._paths)
             success_count = 0
+            failed_files = []
 
             for i, path in enumerate(self._paths):
                 if self._stop:
@@ -962,7 +1188,10 @@ class BatchEditWorkerThread(QThread):
                             crop_image(path, x, y, crop_w, crop_h)
                             success_count += 1
                         else:
-                            log_warning(f"[批量编辑] 跳过 {filename}: 裁剪区域无效")
+                            error_msg = "裁剪区域无效"
+                            log_warning(f"[批量编辑] 跳过 {filename}: {error_msg}")
+                            failed_files.append((filename, error_msg))
+                            self.error_occurred.emit(filename, error_msg)
 
                     elif self._operation == "resize":
                         if self._params.get("use_percentage", False):
@@ -987,14 +1216,17 @@ class BatchEditWorkerThread(QThread):
                             success_count += 1
 
                 except Exception as e:
-                    log_error(f"[批量编辑] 处理失败 {filename}: {e}")
+                    error_msg = str(e)
+                    log_error(f"[批量编辑] 处理失败 {filename}: {error_msg}")
+                    failed_files.append((filename, error_msg))
+                    self.error_occurred.emit(filename, error_msg)
 
             log_info(f"[批量编辑] 完成: {success_count}/{total} 张成功")
-            self.all_done.emit(success_count == total)
+            self.all_done.emit(success_count, total, failed_files)
 
         except Exception as e:
             log_error(f"[批量编辑] 线程错误: {e}")
-            self.all_done.emit(False)
+            self.all_done.emit(0, len(self._paths), [(f"全部失败", str(e))])
 
 
 class BatchEditDialog(QDialog):
