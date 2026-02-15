@@ -439,13 +439,28 @@ class GalleryPage(QWidget):
                     self._log_panel.log(f"  • {filename}: {error}", "error")
                 if len(failed_files) > 10:
                     self._log_panel.log(f"  ... 还有 {len(failed_files) - 10} 个失败", "error")
-        self._refresh_results()
+
+        # 强制刷新结果图库
+        self._result_grid.set_images([])
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, lambda: self._refresh_results_after_edit())
+
+    def _refresh_results_after_edit(self):
+        """编辑后刷新结果"""
+        if hasattr(self, '_search_box') and self._search_box.text().strip():
+            self._apply_filters()
+        else:
+            self._result_grid.load_directory("./output/generated")
+        self._log_panel.log("图库已刷新", "info")
 
     def _on_image_edited(self, path: str):
         """单图编辑完成"""
         self._log_panel.log(f"图片已保存: {Path(path).name}", "success")
-        # 刷新该图片的缩略图
-        self._result_grid.load_directory("./output/generated")
+
+        # 强制刷新该图片的缩略图
+        self._result_grid.set_images([])
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, lambda: self._refresh_results_after_edit())
 
     # ── 重处理功能 ──
 
@@ -488,8 +503,26 @@ class GalleryPage(QWidget):
     def _on_reprocess_done(self, success_count: int, total_count: int):
         """重处理完成"""
         self._log_panel.log(f"重处理完成: {success_count}/{total_count} 张成功", "success")
-        # 刷新结果图库
-        self._result_grid.load_directory("./output/generated")
+
+        # 强制刷新结果图库
+        # 1. 先清空网格
+        self._result_grid.set_images([])
+
+        # 2. 等待一小段时间确保文件系统同步
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, lambda: self._refresh_results_after_reprocess())
+
+    def _refresh_results_after_reprocess(self):
+        """重处理后刷新结果"""
+        # 重新加载目录
+        if hasattr(self, '_search_box') and self._search_box.text().strip():
+            # 如果有搜索或过滤条件，使用 _apply_filters
+            self._apply_filters()
+        else:
+            # 否则直接加载目录
+            self._result_grid.load_directory("./output/generated")
+
+        self._log_panel.log("图库已刷新", "info")
 
     def _on_reprocess_error(self, error: str):
         """重处理错误"""
