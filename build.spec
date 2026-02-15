@@ -55,12 +55,13 @@ hiddenimports = [
     'license',
     'license.device_fingerprint',
     'license.license_manager',
+    'cv2',
+    'numpy',
 ]
 
 # 排除不需要的模块（减小体积）
 excludes = [
     'matplotlib',
-    'numpy',
     'pandas',
     'scipy',
     'tkinter.test',
