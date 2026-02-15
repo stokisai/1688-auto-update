@@ -881,7 +881,7 @@ class ImageGalleryDialog(QDialog):
         self._oss_worker = None
 
         self.setWindowTitle("图库 - 处理结果")
-        self.setMinimumSize(1200, 800)
+        self.setMinimumSize(1600, 1000)  # 增大尺寸
         self._build_ui()
         self._load_thumbnails()
         log_info(f"[图库] 打开图库，共 {len(image_paths)} 张图片")
@@ -956,9 +956,9 @@ class ImageGalleryDialog(QDialog):
         layout.addLayout(edit_row)
 
         # 缩略图网格 + 详细信息
-        content_splitter = QSplitter(Qt.Orientation.Horizontal)
+        content_splitter = QSplitter(Qt.Orientation.Vertical)
 
-        # 左侧：缩略图网格
+        # 上部：缩略图网格
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -969,10 +969,10 @@ class ImageGalleryDialog(QDialog):
         scroll.setWidget(grid_widget)
         content_splitter.addWidget(scroll)
 
-        # 右侧：图片详细信息
+        # 下部：图片详细信息
         info_frame = QFrame()
         info_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        info_frame.setFixedWidth(350)
+        info_frame.setMaximumHeight(200)
         info_layout = QVBoxLayout(info_frame)
 
         info_title = QLabel("图片详细信息:")
@@ -986,6 +986,8 @@ class ImageGalleryDialog(QDialog):
         info_layout.addWidget(self._info_label, stretch=1)
 
         content_splitter.addWidget(info_frame)
+        content_splitter.setStretchFactor(0, 3)
+        content_splitter.setStretchFactor(1, 1)
         layout.addWidget(content_splitter, stretch=1)
 
         # 进度条
@@ -1020,15 +1022,15 @@ class ImageGalleryDialog(QDialog):
 
     def _load_thumbnails(self):
         """异步加载缩略图"""
-        self._loader = ThumbnailLoader(self._image_paths, size=280)
+        self._loader = ThumbnailLoader(self._image_paths, size=150)
         self._loader.thumbnail_loaded.connect(self._on_thumbnail_loaded)
         self._loader.finished.connect(self._on_thumbnails_finished)
         self._loader.start()
 
     def _on_thumbnail_loaded(self, path: str, pixmap: QPixmap):
         """缩略图加载完成"""
-        row = len(self._thumbnails) // 3
-        col = len(self._thumbnails) % 3
+        row = len(self._thumbnails) // 8  # 改为8列
+        col = len(self._thumbnails) % 8
 
         cell_widget = QWidget()
         cell_layout = QVBoxLayout(cell_widget)
@@ -1044,7 +1046,7 @@ class ImageGalleryDialog(QDialog):
         img_label = ClickableLabel()
         img_label.setPixmap(pixmap)
         img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        img_label.setFixedSize(280, 280)
+        img_label.setFixedSize(150, 150)  # 改为150px
         img_label.setStyleSheet("border: 1px solid #444; background-color: #2D2D2D;")
         img_label.clicked.connect(lambda p=path: self._show_image_info(p))
         cell_layout.addWidget(img_label)
