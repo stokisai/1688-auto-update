@@ -20,6 +20,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from bs4 import BeautifulSoup
+from utils.chrome_version import get_user_agent
 
 
 @dataclass
@@ -99,7 +100,7 @@ class AlibabaScraper:
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--ignore-certificate-errors")
-        options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        options.add_argument(f"--user-agent={get_user_agent()}")
         
         # 禁用自动化标志
         options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])

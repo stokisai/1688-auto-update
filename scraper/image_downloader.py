@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
+from utils.chrome_version import get_user_agent
 
 
 class ImageDownloader:
@@ -30,7 +31,7 @@ class ImageDownloader:
         self.max_workers = max_workers
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": get_user_agent(),
             "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
             "Referer": "https://detail.1688.com/",
         })

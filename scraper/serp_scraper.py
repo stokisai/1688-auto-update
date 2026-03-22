@@ -11,6 +11,7 @@ from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 
 from .html_parser import ProductData
+from utils.chrome_version import get_user_agent
 
 
 class SerpApiScraper:
@@ -85,7 +86,7 @@ class SerpApiScraper:
         
         # 方法1: 直接请求 (可能被封)
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': get_user_agent(),
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
             'Referer': 'https://www.1688.com/',

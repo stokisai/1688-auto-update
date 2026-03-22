@@ -13,6 +13,7 @@ from urllib.parse import urljoin, urlparse, quote
 import re
 
 from selenium import webdriver
+from utils.chrome_version import get_user_agent
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -53,7 +54,7 @@ class GoogleImageSearch:
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-gpu")
         options.add_argument("--window-size=1920,1080")
-        options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        options.add_argument(f"--user-agent={get_user_agent()}")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         
         self.driver = webdriver.Chrome(options=options)
