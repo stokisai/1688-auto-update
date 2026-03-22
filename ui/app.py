@@ -17,7 +17,7 @@ from .theme import Theme, Icons, NAV_ICON_MAP, logo_path
 
 
 # 远程版本配置
-REMOTE_VERSION_URL = "https://raw.githubusercontent.com/stokisai/1688-auto-update/main/version.json"
+REMOTE_VERSION_URL = "http://labels.stokisai.com/comfyui-app/version.json"
 
 
 def _runtime_app_dir() -> Path:
