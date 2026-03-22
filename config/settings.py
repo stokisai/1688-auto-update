@@ -279,6 +279,9 @@ class UserConfig:
         """保存配置到文件"""
         path = path or CONFIG_FILE
 
+        # 确保配置目录存在
+        path.parent.mkdir(parents=True, exist_ok=True)
+
         # 转换为可序列化的字典
         data = {
             "api_keys": asdict(self.api_keys),
@@ -300,6 +303,10 @@ class UserConfig:
 
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+
+        # 验证文件确实写入成功
+        if not path.exists() or path.stat().st_size == 0:
+            raise IOError(f"配置文件写入验证失败: {path}")
     
     @classmethod
     def load(cls, path: Path = None) -> 'UserConfig':

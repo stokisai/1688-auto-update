@@ -483,6 +483,13 @@ class LocalBrowsePage(QWidget):
         self._load_workflows()
         wf_row.addWidget(self._workflow_combo)
 
+        refresh_wf_btn = QPushButton()
+        refresh_wf_btn.setIcon(Icons.refresh())
+        refresh_wf_btn.setToolTip("刷新工作流列表")
+        refresh_wf_btn.setFixedWidth(36)
+        refresh_wf_btn.clicked.connect(self._refresh_workflow_list)
+        wf_row.addWidget(refresh_wf_btn)
+
         prompt_lbl = QLabel("提示词:")
         prompt_lbl.setFont(Theme.font_body())
         wf_row.addWidget(prompt_lbl)
@@ -599,6 +606,12 @@ class LocalBrowsePage(QWidget):
         if workflows:
             for wf_name in workflows:
                 self._workflow_combo.addItem(wf_name, wf_name)
+
+    def _refresh_workflow_list(self):
+        """刷新工作流下拉列表"""
+        from config.settings import reload_config
+        self.config = reload_config()
+        self._load_workflows()
 
     def _select_source_folder(self):
         """选择源文件夹"""

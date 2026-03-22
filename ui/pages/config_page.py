@@ -518,6 +518,13 @@ class ConfigPage(QWidget):
 
         wf_row.addWidget(self._wf_combo)
 
+        refresh_wf_btn = QPushButton()
+        refresh_wf_btn.setIcon(Icons.refresh())
+        refresh_wf_btn.setToolTip("刷新工作流列表")
+        refresh_wf_btn.setFixedWidth(36)
+        refresh_wf_btn.clicked.connect(self._refresh_workflow_menu)
+        wf_row.addWidget(refresh_wf_btn)
+
         wf_row.addStretch()
 
         gl.addLayout(wf_row)
@@ -1432,9 +1439,15 @@ class ConfigPage(QWidget):
 
         self.config.comfyui.last_used = datetime.now().isoformat()
 
-        self.config.save()
-
-        self._msg("配置已保存", "info")
+        try:
+            self.config.save()
+            self._msg("配置已保存", "info")
+        except Exception as e:
+            from config.settings import CONFIG_FILE
+            self._msg(f"保存失败: {e}", "error")
+            QMessageBox.critical(self, "保存失败",
+                f"配置文件保存失败！\n\n保存路径: {CONFIG_FILE}\n错误: {e}\n\n"
+                "可能原因：文件夹权限不足，请尝试以管理员身份运行程序。")
 
 
 

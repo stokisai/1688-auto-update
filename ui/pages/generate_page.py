@@ -242,6 +242,13 @@ class GeneratePage(QWidget):
 
         self._wf_row.addWidget(self._wf_combo)
 
+        self._refresh_wf_btn = QPushButton()
+        self._refresh_wf_btn.setIcon(Icons.refresh())
+        self._refresh_wf_btn.setToolTip("刷新工作流列表")
+        self._refresh_wf_btn.setFixedWidth(36)
+        self._refresh_wf_btn.clicked.connect(self._refresh_workflow_list)
+        self._wf_row.addWidget(self._refresh_wf_btn)
+
         self._wf_row.addStretch()
 
         self._wf_widget = QWidget()
@@ -603,6 +610,20 @@ class GeneratePage(QWidget):
     # ── 引擎擎分囨崲 ──
 
 
+
+    def _refresh_workflow_list(self):
+        """刷新工作流下拉列表"""
+        from config.settings import reload_config
+        self.config = reload_config()
+        self._wf_combo.clear()
+        wf_list = self.config.comfyui.list_workflows()
+        if wf_list:
+            self._wf_combo.addItems(wf_list)
+            cur = self.config.comfyui.current_workflow
+            if cur in wf_list:
+                self._wf_combo.setCurrentText(cur)
+        else:
+            self._wf_combo.addItem("请先在配置页添加工作流")
 
     def _on_engine_change(self, text):
 

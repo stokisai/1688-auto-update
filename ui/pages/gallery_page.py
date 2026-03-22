@@ -153,6 +153,13 @@ class GalleryPage(QWidget):
         self._wf_combo.setMinimumWidth(200)
         ctrl.addWidget(self._wf_combo)
 
+        refresh_wf_btn = QPushButton()
+        refresh_wf_btn.setIcon(Icons.refresh())
+        refresh_wf_btn.setToolTip("刷新工作流列表")
+        refresh_wf_btn.setFixedWidth(36)
+        refresh_wf_btn.clicked.connect(self._refresh_workflow_list)
+        ctrl.addWidget(refresh_wf_btn)
+
         prompt_lbl = QLabel("提示词:")
         prompt_lbl.setFont(Theme.font_body())
         ctrl.addWidget(prompt_lbl)
@@ -231,6 +238,12 @@ class GalleryPage(QWidget):
         res_desel.clicked.connect(lambda: self._result_grid.deselect_all())
         res_header.addWidget(res_desel)
 
+        rename_btn = QPushButton("重命名")
+        rename_btn.setIcon(Icons.nav_copywriting())
+        rename_btn.setFixedWidth(110)
+        rename_btn.clicked.connect(self._rename_selected)
+        res_header.addWidget(rename_btn)
+
         edit_btn = QPushButton("编辑")
         edit_btn.setIcon(Icons.palette())
         edit_btn.setFixedWidth(100)
@@ -278,6 +291,17 @@ class GalleryPage(QWidget):
 
         self._refresh_source()
         self._refresh_results()
+
+    def _refresh_workflow_list(self):
+        """刷新工作流下拉列表"""
+        from config.settings import reload_config
+        self.config = reload_config()
+        self._wf_combo.clear()
+        wf_list = self.config.comfyui.list_workflows()
+        self._wf_combo.addItems(wf_list if wf_list else ["请先配置工作流"])
+        cur = self.config.comfyui.current_workflow
+        if cur and cur in (wf_list or []):
+            self._wf_combo.setCurrentText(cur)
 
     # ── 刷新 ──
 
@@ -382,6 +406,59 @@ class GalleryPage(QWidget):
                 except Exception:
                     pass
             self._refresh_results()
+
+    # ── 重命名功能 ──
+
+    def _rename_selected(self):
+        """重命名选中的图片文件"""
+        paths = self._result_grid.selected_paths()
+        if not paths:
+            self._log_panel.log("请先选择要重命名的图片", "warning")
+            return
+
+        if len(paths) == 1:
+            # 单个文件重命名
+            old_path = Path(paths[0])
+            old_name = old_path.stem
+            from PySide6.QtWidgets import QInputDialog
+            new_name, ok = QInputDialog.getText(
+                self, "重命名", f"请输入新文件名（不含扩展名）：",
+                QLineEdit.EchoMode.Normal, old_name
+            )
+            if ok and new_name.strip() and new_name.strip() != old_name:
+                new_path = old_path.parent / f"{new_name.strip()}{old_path.suffix}"
+                if new_path.exists():
+                    QMessageBox.warning(self, "重命名失败", f"文件名 '{new_path.name}' 已存在！")
+                    return
+                try:
+                    old_path.rename(new_path)
+                    self._log_panel.log(f"已重命名: {old_path.name} → {new_path.name}", "info")
+                    self._refresh_results()
+                except Exception as e:
+                    QMessageBox.critical(self, "重命名失败", f"重命名失败: {e}")
+        else:
+            # 批量重命名
+            from PySide6.QtWidgets import QInputDialog
+            prefix, ok = QInputDialog.getText(
+                self, "批量重命名",
+                f"将为 {len(paths)} 个文件添加统一前缀+序号\n请输入前缀：",
+                QLineEdit.EchoMode.Normal, "img"
+            )
+            if ok and prefix.strip():
+                prefix = prefix.strip()
+                renamed = 0
+                for i, p in enumerate(sorted(paths), 1):
+                    old_path = Path(p)
+                    new_path = old_path.parent / f"{prefix}_{i:03d}{old_path.suffix}"
+                    if new_path.exists():
+                        continue
+                    try:
+                        old_path.rename(new_path)
+                        renamed += 1
+                    except Exception:
+                        pass
+                self._log_panel.log(f"批量重命名完成: {renamed}/{len(paths)} 个文件", "info")
+                self._refresh_results()
 
     # ── 编辑功能 ──
 
