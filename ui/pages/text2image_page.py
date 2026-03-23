@@ -82,6 +82,7 @@ class Text2ImagePage(QWidget):
             "Nano Banana 标准": "nano_banana",
             "Nano Banana Pro": "nano_banana_pro",
             "ComfyUI 工作流": "comfyui",
+            "豆包 Seedream": "doubao",
         }
         self._engine_combo = QComboBox()
         self._engine_combo.addItems(list(self._engine_map.keys()))
@@ -89,6 +90,35 @@ class Text2ImagePage(QWidget):
         eng_row.addWidget(self._engine_combo)
         eng_row.addStretch()
         ll.addLayout(eng_row)
+
+        # ComfyUI 工作流选择
+        wf_row = QHBoxLayout()
+        wf_lbl = QLabel("工作流:")
+        wf_lbl.setFont(Theme.font_body())
+        wf_row.addWidget(wf_lbl)
+        self._wf_combo = QComboBox()
+        wf_list = self.config.comfyui.list_workflows() if hasattr(self.config, 'comfyui') else []
+        if wf_list:
+            self._wf_combo.addItems(wf_list)
+            cur = self.config.comfyui.current_workflow
+            if cur in wf_list:
+                self._wf_combo.setCurrentText(cur)
+        else:
+            self._wf_combo.addItem("请先在配置页添加工作流")
+        self._wf_combo.setMinimumWidth(250)
+        wf_row.addWidget(self._wf_combo)
+        refresh_btn = QPushButton()
+        refresh_btn.setIcon(Icons.refresh())
+        refresh_btn.setToolTip("刷新工作流列表")
+        refresh_btn.setFixedWidth(36)
+        refresh_btn.clicked.connect(self._refresh_workflow_list)
+        wf_row.addWidget(refresh_btn)
+        wf_row.addStretch()
+        self._wf_widget = QWidget()
+        self._wf_widget.setLayout(wf_row)
+        ll.addWidget(self._wf_widget)
+        self._wf_widget.setVisible(self._engine_map.get(self._engine_combo.currentText()) == "comfyui")
+        self._engine_combo.currentTextChanged.connect(self._on_engine_change)
 
         # 生成按钮
         gen_row = QHBoxLayout()
@@ -186,6 +216,23 @@ class Text2ImagePage(QWidget):
         # 加载图库
         self._refresh_gallery()
 
+    def _on_engine_change(self, text):
+        is_comfyui = self._engine_map.get(text) == "comfyui"
+        self._wf_widget.setVisible(is_comfyui)
+
+    def _refresh_workflow_list(self):
+        from config.settings import reload_config
+        self.config = reload_config()
+        self._wf_combo.clear()
+        wf_list = self.config.comfyui.list_workflows() if hasattr(self.config, 'comfyui') else []
+        if wf_list:
+            self._wf_combo.addItems(wf_list)
+            cur = self.config.comfyui.current_workflow
+            if cur in wf_list:
+                self._wf_combo.setCurrentText(cur)
+        else:
+            self._wf_combo.addItem("请先在配置页添加工作流")
+
     # ── 生成 ──
 
     def _start_generate(self):
@@ -195,7 +242,7 @@ class Text2ImagePage(QWidget):
             return
 
         engine_key = self._engine_map.get(self._engine_combo.currentText(), "nano_banana")
-        wf_name = self.config.comfyui.current_workflow if engine_key == "comfyui" else ""
+        wf_name = self._wf_combo.currentText() if engine_key == "comfyui" else ""
 
         self._gen_btn.setEnabled(False)
         self._gen_btn.setText("生成中...")

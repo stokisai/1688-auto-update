@@ -102,13 +102,42 @@ class AutomationPage(QWidget):
         step2_lbl.setFont(Theme.font_title())
         rl.addWidget(step2_lbl)
         eng_row = QHBoxLayout()
-        self._engine_map = {"ComfyUI": "comfyui", "Nano": "nano_banana", "Nano Pro": "nano_banana_pro"}
+        self._engine_map = {"ComfyUI": "comfyui", "Nano": "nano_banana", "Nano Pro": "nano_banana_pro", "豆包": "doubao"}
         self._engine_combo = QComboBox()
         self._engine_combo.addItems(list(self._engine_map.keys()))
         self._engine_combo.setMinimumWidth(200)
         eng_row.addWidget(self._engine_combo)
         eng_row.addStretch()
         rl.addLayout(eng_row)
+
+        # ComfyUI 工作流选择
+        self._wf_row = QHBoxLayout()
+        wf_lbl = QLabel("工作流:")
+        wf_lbl.setFont(Theme.font_body())
+        self._wf_row.addWidget(wf_lbl)
+        self._wf_combo = QComboBox()
+        wf_list = self.config.comfyui.list_workflows() if hasattr(self.config, 'comfyui') else []
+        if wf_list:
+            self._wf_combo.addItems(wf_list)
+            cur = self.config.comfyui.current_workflow
+            if cur in wf_list:
+                self._wf_combo.setCurrentText(cur)
+        else:
+            self._wf_combo.addItem("请先在配置页添加工作流")
+        self._wf_combo.setMinimumWidth(250)
+        self._wf_row.addWidget(self._wf_combo)
+        self._refresh_wf_btn = QPushButton()
+        self._refresh_wf_btn.setIcon(Icons.refresh())
+        self._refresh_wf_btn.setToolTip("刷新工作流列表")
+        self._refresh_wf_btn.setFixedWidth(36)
+        self._refresh_wf_btn.clicked.connect(self._refresh_workflow_list)
+        self._wf_row.addWidget(self._refresh_wf_btn)
+        self._wf_row.addStretch()
+        self._wf_widget = QWidget()
+        self._wf_widget.setLayout(self._wf_row)
+        rl.addWidget(self._wf_widget)
+        self._wf_widget.setVisible(self._engine_map.get(self._engine_combo.currentText()) == "comfyui")
+        self._engine_combo.currentTextChanged.connect(self._on_engine_change)
 
         # 3. 手动提示词
         step3_lbl = QLabel("3. 手动提示词 (可选，留空则AI自动生成)")
@@ -162,6 +191,23 @@ class AutomationPage(QWidget):
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 1)
 
+    def _on_engine_change(self, text):
+        is_comfyui = self._engine_map.get(text) == "comfyui"
+        self._wf_widget.setVisible(is_comfyui)
+
+    def _refresh_workflow_list(self):
+        from config.settings import reload_config
+        self.config = reload_config()
+        self._wf_combo.clear()
+        wf_list = self.config.comfyui.list_workflows() if hasattr(self.config, 'comfyui') else []
+        if wf_list:
+            self._wf_combo.addItems(wf_list)
+            cur = self.config.comfyui.current_workflow
+            if cur in wf_list:
+                self._wf_combo.setCurrentText(cur)
+        else:
+            self._wf_combo.addItem("请先在配置页添加工作流")
+
     # ── 操作 ──
 
     def _start(self):
@@ -172,7 +218,7 @@ class AutomationPage(QWidget):
 
         engine = self._engine_map.get(self._engine_combo.currentText(), "comfyui")
         prompt = self._manual_prompt.toPlainText().strip()
-        wf = self.config.comfyui.current_workflow if engine == "comfyui" else ""
+        wf = self._wf_combo.currentText() if engine == "comfyui" else ""
 
         self._start_btn.setEnabled(False)
         self._stop_btn.setEnabled(True)

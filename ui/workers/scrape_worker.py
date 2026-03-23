@@ -43,14 +43,17 @@ class ScrapeWorker(QThread):
 
         # 尝试加载 cookies
         try:
-            scraper.load_cookies("./config/1688_cookies.json")
-            self.progress.emit("已加载登录 cookies", "info")
-        except Exception:
-            pass
+            scraper._init_driver()
+            if scraper._load_cookies():
+                self.progress.emit("已加载登录 cookies", "info")
+            else:
+                self.progress.emit("未找到登录 cookies，可能需要先登录", "warning")
+        except Exception as e:
+            self.progress.emit(f"加载 cookies 失败: {e}", "warning")
 
         self.progress.emit("正在采集商品信息...", "step")
         product = scraper.scrape_product(self._url)
-        scraper.close()
+        scraper._close_driver()
 
         self.progress.emit(f"标题: {product.title[:50]}...", "info")
         self.progress.emit(f"主图: {len(product.main_images)} 张, 详情图: {len(product.detail_images)} 张", "info")
@@ -97,11 +100,16 @@ class LoginWorker(QThread):
     finished = Signal(bool)
     error = Signal(str)
 
+    def __init__(self, username="", password="", parent=None):
+        super().__init__(parent)
+        self._username = username
+        self._password = password
+
     def run(self):
         try:
             from scraper import AlibabaScraper
             self.progress.emit("打开登录页面...", "step")
-            scraper = AlibabaScraper(headless=False)
+            scraper = AlibabaScraper(headless=False, username=self._username, password=self._password)
             success = scraper.ensure_logged_in()
             if success:
                 scraper._save_cookies()

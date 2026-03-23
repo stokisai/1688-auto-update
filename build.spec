@@ -11,26 +11,34 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 # 项目根目录
 PROJECT_DIR = os.path.dirname(os.path.abspath(SPEC))
 
-# 收集 CustomTkinter 数据文件
-ctk_datas = collect_data_files('customtkinter')
+# 收集 PySide6 数据文件
+pyside6_datas = collect_data_files('PySide6')
+qtawesome_datas = collect_data_files('qtawesome')
+qt_material_datas = collect_data_files('qt_material')
 
 # 收集其他依赖的数据文件
-datas = ctk_datas + [
+datas = pyside6_datas + qtawesome_datas + qt_material_datas + [
     # 项目资源文件
     (os.path.join(PROJECT_DIR, 'assets'), 'assets'),
     (os.path.join(PROJECT_DIR, 'config'), 'config'),
     (os.path.join(PROJECT_DIR, 'license'), 'license'),
     (os.path.join(PROJECT_DIR, 'utils'), 'utils'),
     (os.path.join(PROJECT_DIR, 'version.json'), '.'),
-    (os.path.join(PROJECT_DIR, 'user_config.json'), '.'),
 ]
+
+# 如果 user_config.json 存在则包含
+user_config = os.path.join(PROJECT_DIR, 'user_config.json')
+if os.path.exists(user_config):
+    datas.append((user_config, '.'))
 
 # 隐藏导入（PyInstaller 可能检测不到的模块）
 hiddenimports = [
-    'customtkinter',
-    'CTkMessagebox',
-    'PIL',
-    'PIL._tkinter_finder',
+    'PySide6',
+    'PySide6.QtWidgets',
+    'PySide6.QtCore',
+    'PySide6.QtGui',
+    'qt_material',
+    'qtawesome',
     'selenium',
     'selenium.webdriver',
     'selenium.webdriver.chrome',
@@ -51,12 +59,13 @@ hiddenimports = [
     'openai',
     'google.cloud.vision',
     'google.genai',
-    'windnd',
     'license',
     'license.device_fingerprint',
     'license.license_manager',
     'cv2',
     'numpy',
+    'PIL',
+    'oss2',
 ]
 
 # 排除不需要的模块（减小体积）
@@ -64,7 +73,8 @@ excludes = [
     'matplotlib',
     'pandas',
     'scipy',
-    'tkinter.test',
+    'tkinter',
+    'customtkinter',
     'unittest',
 ]
 

@@ -74,7 +74,7 @@ except ImportError:
 
 
 
-REMOTE_VERSION_URL = "http://labels.stokisai.com/comfyui-app/version.json"
+REMOTE_VERSION_URL = "https://raw.githubusercontent.com/stokisai/ai-drawing-tool-releases/main/version.json"
 
 
 
@@ -159,6 +159,8 @@ class ConfigPage(QWidget):
         scroll.setWidget(container)
 
 
+
+        self._build_alibaba_section()
 
         self._build_recognition_section()
 
@@ -268,6 +270,78 @@ class ConfigPage(QWidget):
 
 
 
+    def _build_alibaba_section(self):
+
+        grp = QGroupBox("1688 账号配置")
+
+        grp.setFont(Theme.font_title())
+
+        gl = QVBoxLayout(grp)
+
+        gl.setSpacing(16)
+
+        # 账号 — 与 _add_api_row 相同的布局结构
+        row1 = QHBoxLayout()
+        lbl1 = QLabel("1688 账号:")
+        lbl1.setFixedWidth(150)
+        lbl1.setFont(Theme.font_body())
+        row1.addWidget(lbl1)
+
+        self._alibaba_username = QLineEdit()
+        self._alibaba_username.setPlaceholderText("手机号/邮箱")
+        self._alibaba_username.setEchoMode(QLineEdit.EchoMode.Password)
+        self._alibaba_username.setFont(Theme.font_body())
+        self._alibaba_username.setMinimumHeight(36)
+        self._alibaba_username.setMaximumWidth(500)
+        if self.config.alibaba_username:
+            self._alibaba_username.setText(self.config.alibaba_username)
+        row1.addWidget(self._alibaba_username, stretch=1)
+
+        show_cb1 = QCheckBox("显示")
+        show_cb1.setFont(Theme.font_small())
+        show_cb1.toggled.connect(
+            lambda checked: self._alibaba_username.setEchoMode(
+                QLineEdit.EchoMode.Normal if checked else QLineEdit.EchoMode.Password
+            )
+        )
+        row1.addWidget(show_cb1)
+
+        gl.addLayout(row1)
+
+        # 密码
+        row2 = QHBoxLayout()
+        lbl2 = QLabel("1688 密码:")
+        lbl2.setFixedWidth(150)
+        lbl2.setFont(Theme.font_body())
+        row2.addWidget(lbl2)
+
+        self._alibaba_password = QLineEdit()
+        self._alibaba_password.setPlaceholderText("密码")
+        self._alibaba_password.setEchoMode(QLineEdit.EchoMode.Password)
+        self._alibaba_password.setFont(Theme.font_body())
+        self._alibaba_password.setMinimumHeight(36)
+        self._alibaba_password.setMaximumWidth(500)
+        if self.config.alibaba_password:
+            self._alibaba_password.setText(self.config.alibaba_password)
+        row2.addWidget(self._alibaba_password, stretch=1)
+
+        show_cb = QCheckBox("显示")
+        show_cb.setFont(Theme.font_small())
+        show_cb.toggled.connect(
+            lambda checked: self._alibaba_password.setEchoMode(
+                QLineEdit.EchoMode.Normal if checked else QLineEdit.EchoMode.Password
+            )
+        )
+        row2.addWidget(show_cb)
+        gl.addLayout(row2)
+
+        hint = QLabel("提示：账号密码仅保存在本地，用于自动登录1688采集商品信息")
+        hint.setProperty("class", "gray")
+        hint.setFont(Theme.font_small())
+        gl.addWidget(hint)
+
+        self._layout.addWidget(grp)
+
     def _build_recognition_section(self):
 
         grp = QGroupBox("图像识别 API")
@@ -283,6 +357,8 @@ class ConfigPage(QWidget):
         self._add_api_row(gl, "doubao_api_key", "豆包 (推荐)", "免费额度大")
 
         self._add_api_row(gl, "qwen_api_key", "通义千问", "价格最低")
+
+        self._add_api_row(gl, "zhipu_api_key", "智谱AI GLM-4.6V", "Flash版免费")
 
         self._add_api_row(gl, "openrouter_api_key", "OpenRouter", "一个Key多用")
 
@@ -1438,6 +1514,9 @@ class ConfigPage(QWidget):
         self.config.comfyui.auth_server_url = self._auth_server.text().strip()
 
         self.config.comfyui.last_used = datetime.now().isoformat()
+
+        self.config.alibaba_username = self._alibaba_username.text().strip()
+        self.config.alibaba_password = self._alibaba_password.text().strip()
 
         try:
             self.config.save()

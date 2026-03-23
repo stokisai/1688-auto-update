@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 from PySide6.QtWidgets import (
 
@@ -48,11 +48,17 @@ _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 
 class GeneratePage(QWidget):
 
+    _text_result_signal = Signal(str, str)  # (text, type): type = "translate" or "rewrite"
+    _text_error_signal = Signal(str)
+
     def __init__(self, config, parent=None):
 
         super().__init__(parent)
 
         self.config = config
+
+        self._text_result_signal.connect(self._on_text_result)
+        self._text_error_signal.connect(lambda msg: self._log.append(msg, "error"))
 
         self._output_dir = "./output/generated"
 
@@ -73,6 +79,13 @@ class GeneratePage(QWidget):
         self._build_ui()
 
 
+
+    def _on_text_result(self, text, result_type):
+        self._prompt_text.setPlainText(text)
+        if result_type == "translate":
+            self._log.append("翻译完成", "success")
+        else:
+            self._log.append("AI改写完成", "success")
 
     def _build_ui(self):
 
@@ -191,6 +204,8 @@ class GeneratePage(QWidget):
             "Nano Banana": "nano_banana",
 
             "Nano Pro": "nano_banana_pro",
+
+            "豆包": "doubao",
 
         }
 
@@ -819,13 +834,11 @@ class GeneratePage(QWidget):
 
                 )
 
-                self._prompt_text.setPlainText(result)
-
-                self._log.append("AI改写完成", "success")
+                self._text_result_signal.emit(result, "rewrite")
 
             except Exception as e:
 
-                self._log.append(f"改写失败: {e}", "error")
+                self._text_error_signal.emit(f"改写失败: {e}")
 
 
 
@@ -860,7 +873,6 @@ class GeneratePage(QWidget):
         def do_translate():
 
             try:
-
                 result = self._call_text_completion(
 
                     api_key,
@@ -879,13 +891,11 @@ class GeneratePage(QWidget):
 
                 )
 
-                self._prompt_text.setPlainText(result)
-
-                self._log.append("翻译完成", "success")
+                self._text_result_signal.emit(result, "translate")
 
             except Exception as e:
 
-                self._log.append(f"翻译失败: {e}", "error")
+                self._text_error_signal.emit(f"翻译失败: {e}")
 
 
 

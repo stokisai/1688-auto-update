@@ -57,6 +57,8 @@ class GenerateWorker(QThread):
                 self._run_nano(pro=False)
             elif self._engine == "nano_banana_pro":
                 self._run_nano(pro=True)
+            elif self._engine == "doubao":
+                self._run_doubao()
             else:
                 self.error.emit(f"未知引擎: {self._engine}")
         except Exception as e:
@@ -112,8 +114,30 @@ class GenerateWorker(QThread):
             from image_generation import NanoBananaProClient
             client = NanoBananaProClient(key)
         else:
-            from image_generation import NanoBananaClient
-            client = NanoBananaClient(key)
+            from image_generation import NanoBananaBasicClient
+            client = NanoBananaBasicClient(key)
+
+        if self._source:
+            result = client.image_to_image(self._source, self._prompt, output_dir=self._output)
+        else:
+            result = client.generate(self._prompt, output_dir=self._output)
+
+        if result:
+            self.progress.emit("生成完成", "success")
+            self.finished.emit(result)
+        else:
+            self.error.emit("生成失败")
+
+    def _run_doubao(self):
+        key = getattr(self._config.api_keys, "doubao_api_key", "")
+        if not key:
+            self.error.emit("请先配置豆包 API Key")
+            return
+
+        self.progress.emit("正在生成...", "step")
+
+        from image_generation import DoubaoGenerationClient
+        client = DoubaoGenerationClient(key)
 
         if self._source:
             result = client.image_to_image(self._source, self._prompt, output_dir=self._output)

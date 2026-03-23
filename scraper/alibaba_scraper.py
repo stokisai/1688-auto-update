@@ -335,10 +335,24 @@ class AlibabaScraper:
             except:
                 print("页面加载可能不完整，继续尝试...")
             
-            # 检查是否有 iframe
+            # 检查是否有 iframe（扫码登录可能导致页面已跳转）
             print("检查登录表单...")
-            iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
-            print(f"   发现 {len(iframes)} 个 iframe")
+            try:
+                iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
+                print(f"   发现 {len(iframes)} 个 iframe")
+            except Exception as e:
+                print(f"   检查iframe时出错（可能已扫码跳转）: {e}")
+                # 尝试检查是否已经登录成功
+                try:
+                    current_url = self.driver.current_url
+                    if "login.1688.com" not in current_url and "signin" not in current_url:
+                        print("✓ 检测到已离开登录页，登录成功！")
+                        time.sleep(2)
+                        self._save_cookies()
+                        return True
+                except:
+                    pass
+                return False
             
             # 尝试切换到可能的登录 iframe
             login_iframe_found = False
@@ -493,8 +507,15 @@ class AlibabaScraper:
                         print(f"   还在等待... (剩余 {mins}分{secs}秒)")
                         
                 except Exception as e:
+                    error_str = str(e).lower()
+                    if "invalid session" in error_str or "no such window" in error_str:
+                        print(f"浏览器已关闭或session失效")
+                        # 检查cookies文件是否已经存在（可能之前已保存）
+                        if Path(self.COOKIE_FILE).exists():
+                            print("✓ 发现已保存的cookies，登录可能已成功")
+                            return True
+                        break
                     print(f"检测状态出错: {e}")
-                    # 可能浏览器被关闭
                     break
             
             print("")

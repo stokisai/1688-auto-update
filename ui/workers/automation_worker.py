@@ -193,6 +193,13 @@ class AutomationWorker(QThread):
             key = self._resolve_key(prefer_pro=True)
             client = NanoBananaProClient(key)
             result = client.image_to_image(source_image, prompt, output_dir=output_dir)
+        elif self._engine == "doubao":
+            from image_generation import DoubaoGenerationClient
+            key = getattr(self._config.api_keys, "doubao_api_key", "")
+            if not key:
+                raise RuntimeError("请先配置豆包 API Key")
+            client = DoubaoGenerationClient(key)
+            result = client.image_to_image(source_image, prompt, output_dir=output_dir)
         else:
             from image_generation import NanoBananaClient
             key = self._resolve_key(prefer_pro=False)

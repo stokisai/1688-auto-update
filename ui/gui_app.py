@@ -52,7 +52,7 @@ except ImportError:
 
 
 # ==================== 远程版本配置 ====================
-REMOTE_VERSION_URL = "http://labels.stokisai.com/comfyui-app/version.json"
+REMOTE_VERSION_URL = "https://raw.githubusercontent.com/stokisai/ai-drawing-tool-releases/main/version.json"
 # =====================================================
 
 # 设置外观

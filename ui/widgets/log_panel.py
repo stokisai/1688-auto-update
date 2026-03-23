@@ -8,6 +8,12 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit
 
 from ..theme import Theme
 
+try:
+    from utils.logger import log_info, log_error, log_debug
+    _LOGGER_OK = True
+except ImportError:
+    _LOGGER_OK = False
+
 
 class LogPanel(QWidget):
     """带颜色标签的日志面板，支持 critical 脉冲闪烁。"""
@@ -40,6 +46,15 @@ class LogPanel(QWidget):
     @Slot(str, str)
     def append(self, message: str, level: str = "info"):
         """追加一条日志。level: info/success/warning/error/step/critical"""
+        # 同步写入全局日志文件
+        if _LOGGER_OK:
+            if level in ("error", "critical"):
+                log_error(f"[UI] {message}")
+            elif level in ("warning",):
+                log_info(f"[UI:WARN] {message}")
+            else:
+                log_info(f"[UI] {message}")
+
         color = self.LEVEL_COLORS.get(level, self.LEVEL_COLORS["info"])
         fmt = QTextCharFormat()
         fmt.setForeground(QColor(color))

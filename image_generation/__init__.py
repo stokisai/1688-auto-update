@@ -6,6 +6,7 @@ from .nano_banana_wash import NanoBananaWashClient
 from .comfyui_client import ComfyUIFluxKontextClient
 from .openrouter_generation import OpenRouterGenerationClient
 from .gemini_client import GeminiImageClient
+from .doubao_generation import DoubaoGenerationClient
 from .image_host import (
     ImageHostUploader,
     ImgBBClient,
@@ -29,6 +30,7 @@ __all__ = [
     'ComfyUIFluxKontextClient',
     'OpenRouterGenerationClient',
     'GeminiImageClient',
+    'DoubaoGenerationClient',
     'ImageHostUploader',
     'ImgBBClient',
     'ImgurClient',

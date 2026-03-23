@@ -67,11 +67,16 @@ class ScrapePage(QWidget):
         self._scrape_btn.clicked.connect(self._start_scrape)
         url_row.addWidget(self._scrape_btn)
 
-        login_btn = QPushButton("登录1688")
-        login_btn.setIcon(Icons.key())
-        login_btn.setFixedWidth(140)
-        login_btn.clicked.connect(self._login_1688)
-        url_row.addWidget(login_btn)
+        self._login_btn = QPushButton("登录1688")
+        self._login_btn.setIcon(Icons.key())
+        self._login_btn.setFixedWidth(140)
+        self._login_btn.clicked.connect(self._login_1688)
+        url_row.addWidget(self._login_btn)
+
+        # 启动时检查是否已有cookies
+        from pathlib import Path
+        if Path("./config/1688_cookies.json").exists():
+            self._login_btn.setText("已登录 ✓")
         url_row.addStretch()
         root.addLayout(url_row)
 
@@ -236,13 +241,30 @@ class ScrapePage(QWidget):
 
     def _login_1688(self):
         self._log.append("正在打开登录页面...", "step")
-        self._login_worker = LoginWorker()
+        self._login_btn.setEnabled(False)
+        self._login_btn.setText("登录中...")
+        username = getattr(self.config, 'alibaba_username', '') or ''
+        password = getattr(self.config, 'alibaba_password', '') or ''
+        self._login_worker = LoginWorker(username=username, password=password)
         self._login_worker.progress.connect(self._log.append)
-        self._login_worker.finished.connect(
-            lambda ok: self._log.append("登录成功!" if ok else "登录失败", "success" if ok else "error")
-        )
-        self._login_worker.error.connect(lambda e: self._log.append(f"登录错误: {e}", "error"))
+        self._login_worker.finished.connect(self._on_login_finished)
+        self._login_worker.error.connect(lambda e: self._on_login_error(e))
         self._login_worker.start()
+
+    def _on_login_finished(self, ok):
+        if ok:
+            self._log.append("登录成功!", "success")
+            self._login_btn.setText("已登录 ✓")
+            self._login_btn.setEnabled(True)
+        else:
+            self._log.append("登录失败", "error")
+            self._login_btn.setText("登录1688")
+            self._login_btn.setEnabled(True)
+
+    def _on_login_error(self, e):
+        self._log.append(f"登录错误: {e}", "error")
+        self._login_btn.setText("登录1688")
+        self._login_btn.setEnabled(True)
 
     # ── 工具 ──
 

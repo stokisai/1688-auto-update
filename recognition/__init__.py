@@ -6,11 +6,13 @@ from .gemini_vision import GeminiVisionRecognizer
 from .openrouter_client import OpenRouterClient
 from .openai_vision import OpenAIVisionRecognizer
 from .google_vision import GoogleVisionRecognizer
+from .zhipu_vision import ZhipuVisionRecognizer
 
 __all__ = [
     'BaseRecognizer',
     'DoubaoVisionRecognizer',
-    'QwenVLRecognizer', 
+    'QwenVLRecognizer',
+    'ZhipuVisionRecognizer',
     'GeminiVisionRecognizer',
     'OpenRouterClient',
     'OpenAIVisionRecognizer',

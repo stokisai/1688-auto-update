@@ -36,10 +36,10 @@ def gui():
         qt_app = QApplication.instance() or QApplication(sys.argv)
         setup_app_theme(qt_app)
 
-        # 先检查激活状态
-        if not check_and_activate():
-            console.print("[yellow]用户取消激活，退出程序[/yellow]")
-            return
+        # 先检查激活状态（暂时跳过，测试用）
+        # if not check_and_activate():
+        #     console.print("[yellow]用户取消激活，退出程序[/yellow]")
+        #     return
 
         # 激活成功，启动主程序
         window = App()

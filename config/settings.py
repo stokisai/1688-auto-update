@@ -30,6 +30,7 @@ class APIKeyConfig:
     # 图像识别 API (至少配置一个)
     doubao_api_key: str = ""          # 豆包 (推荐)
     qwen_api_key: str = ""            # 通义千问
+    zhipu_api_key: str = ""           # 智谱AI GLM-4.6V
     gemini_api_key: str = ""          # Google Gemini
     openrouter_api_key: str = ""      # OpenRouter (通用)
     openai_api_key: str = ""          # OpenAI GPT-4V
@@ -47,6 +48,7 @@ class APIKeyConfig:
         return any([
             self.doubao_api_key,
             self.qwen_api_key,
+            self.zhipu_api_key,
             self.gemini_api_key,
             self.openrouter_api_key,
             self.openai_api_key,
@@ -68,8 +70,10 @@ class APIKeyConfig:
         engines = []
         if self.doubao_api_key: 
             engines.append("doubao")
-        if self.qwen_api_key: 
+        if self.qwen_api_key:
             engines.append("qwen")
+        if self.zhipu_api_key:
+            engines.append("zhipu")
         if self.gemini_api_key: 
             engines.append("gemini")
         if self.openrouter_api_key: 
@@ -92,6 +96,8 @@ class APIKeyConfig:
             engines.append("nano_banana_pro")
         if self.openrouter_api_key:
             engines.append("openrouter")
+        if self.doubao_api_key:
+            engines.append("doubao")
         return engines
 
 
@@ -274,6 +280,8 @@ class UserConfig:
     output_dir: str = "./output"
     default_recognition_engine: str = ""  # 默认图像识别引擎
     default_generation_engine: str = ""   # 默认图生图引擎
+    alibaba_username: str = ""            # 1688 账号
+    alibaba_password: str = ""            # 1688 密码
 
     def save(self, path: Path = None):
         """保存配置到文件"""
@@ -299,6 +307,8 @@ class UserConfig:
             "output_dir": self.output_dir,
             "default_recognition_engine": self.default_recognition_engine,
             "default_generation_engine": self.default_generation_engine,
+            "alibaba_username": self.alibaba_username,
+            "alibaba_password": self.alibaba_password,
         }
 
         with open(path, 'w', encoding='utf-8') as f:
@@ -352,6 +362,8 @@ class UserConfig:
             config.output_dir = data.get("output_dir", "./output")
             config.default_recognition_engine = data.get("default_recognition_engine", "")
             config.default_generation_engine = data.get("default_generation_engine", "")
+            config.alibaba_username = data.get("alibaba_username", "")
+            config.alibaba_password = data.get("alibaba_password", "")
 
             return config
 

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+*.egg-info/
+logs/
+output/
+user_config.json
+config/1688_cookies.json
+.env
