@@ -1,6 +1,6 @@
 {
-  "version": "2.3.4",
+  "version": "2.3.5",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.4/AI_v2.3.4.zip",
-  "changelog": "2.3.4 - 1688登录采集流程优化：undetected-chromedriver反检测；复用浏览器采集；清空旧图片缓存；移除1688账号配置"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.5/AI_v2.3.5.zip",
+  "changelog": "2.3.5 - 启用激活码验证（输入一次永久有效）"
 }
