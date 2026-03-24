@@ -1,6 +1,6 @@
 {
-  "version": "2.3.2",
+  "version": "2.3.3",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.2/AI_v2.3.2.zip",
-  "changelog": "2.3.2 - 修复历史图库单张图片显示撑满问题；修复Google Drive配置表单对齐"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.3/AI_v2.3.3.zip",
+  "changelog": "2.3.3 - 修复1688采集时浏览器不弹出问题，支持手动处理验证码"
 }
