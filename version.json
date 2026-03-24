@@ -1,6 +1,6 @@
 {
-  "version": "2.3.1",
+  "version": "2.3.2",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.1/AI_v2.3.1.zip",
-  "changelog": "2.3.1 - 修复selenium模块打包缺失导致浏览器无法启动"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.2/AI_v2.3.2.zip",
+  "changelog": "2.3.2 - 修复历史图库单张图片显示撑满问题；修复Google Drive配置表单对齐"
 }
