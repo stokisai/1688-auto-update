@@ -1,6 +1,6 @@
 {
-  "version": "2.3.4",
+  "version": "2.3.3",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.4/AI_v2.3.4.zip",
-  "changelog": "2.3.4 - 1688登录自动点击登录按钮；填入账号密码后自动提交"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.3/AI_v2.3.3.zip",
+  "changelog": "2.3.3 - 修复1688采集时浏览器不弹出问题，支持手动处理验证码"
 }
