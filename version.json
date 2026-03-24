@@ -1,6 +1,6 @@
 {
   "version": "2.2.0",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/ai-drawing-tool-releases/releases/download/v2.2.0/AI_v2.2.0.zip",
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.2.0/AI_v2.2.0.zip",
   "changelog": "2.2.0 - 新增智谱AI/豆包图生图引擎；修复翻译/AI改写闪退；修复1688登录和采集；新增1688账号配置；工作流选择器优化；日志汇总；更新源切换到GitHub Releases"
 }
