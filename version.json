@@ -1,6 +1,6 @@
 {
-  "version": "2.3.5",
+  "version": "2.3.6",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.5/AI_v2.3.5.zip",
-  "changelog": "2.3.5 - 启用激活码验证（输入一次永久有效）"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.6/AI_v2.3.6.zip",
+  "changelog": "2.3.6 - 补充采集商品属性和包装信息字段"
 }
