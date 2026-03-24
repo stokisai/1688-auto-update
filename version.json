@@ -1,6 +1,6 @@
 {
-  "version": "2.3.0",
+  "version": "2.3.1",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.0/AI_v2.3.0.zip",
-  "changelog": "2.3.0 - 修复自动更新脚本路径和ERRORLEVEL问题；修复打包后日志崩溃；下载支持断点续传和自动重试"
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.1/AI_v2.3.1.zip",
+  "changelog": "2.3.1 - 修复selenium模块打包缺失导致浏览器无法启动"
 }
