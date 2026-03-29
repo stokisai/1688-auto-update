@@ -52,7 +52,16 @@ class AmazonScraper:
         options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         
-        self.driver = webdriver.Chrome(options=options)
+        try:
+            self.driver = webdriver.Chrome(options=options)
+        except Exception as e:
+            raise Exception(
+                "无法启动 Chrome 浏览器！\n\n"
+                "请确保已安装 Google Chrome 浏览器：\n"
+                "1. 访问 https://www.google.com/chrome/ 下载安装\n"
+                "2. 安装完成后重新运行程序\n\n"
+                f"原始错误: {e}"
+            )
         
     def _close_driver(self):
         if self.driver:

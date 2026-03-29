@@ -57,7 +57,16 @@ class GoogleImageSearch:
         options.add_argument(f"--user-agent={get_user_agent()}")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         
-        self.driver = webdriver.Chrome(options=options)
+        try:
+            self.driver = webdriver.Chrome(options=options)
+        except Exception as e:
+            raise Exception(
+                "无法启动 Chrome 浏览器！\n\n"
+                "请确保已安装 Google Chrome 浏览器：\n"
+                "1. 访问 https://www.google.com/chrome/ 下载安装\n"
+                "2. 安装完成后重新运行程序\n\n"
+                f"原始错误: {e}"
+            )
         
     def _close_driver(self):
         """关闭浏览器"""

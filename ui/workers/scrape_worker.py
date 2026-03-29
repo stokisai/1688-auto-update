@@ -41,9 +41,14 @@ class ScrapeWorker(QThread):
         self.progress.emit("启动浏览器...", "step")
         scraper = AlibabaScraper(headless=True, timeout=120)
 
-        # 尝试加载 cookies
+        # 启动浏览器
         try:
             scraper._init_driver()
+        except Exception as e:
+            raise Exception(f"无法启动 Chrome 浏览器: {e}")
+
+        # 尝试加载 cookies
+        try:
             if scraper._load_cookies():
                 self.progress.emit("已加载登录 cookies", "info")
             else:
