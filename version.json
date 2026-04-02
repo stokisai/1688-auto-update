@@ -1,6 +1,6 @@
 {
   "version": "2.3.7",
   "app_name": "AI绘画工具",
-  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.7/AI._v2.3.7.zip",
+  "download_url": "https://github.com/stokisai/1688-auto-update/releases/download/v2.3.7/AI_v2.3.7.zip",
   "changelog": "2.3.7 - 修复Chrome浏览器无法启动时错误提示不正确的问题"
 }

@@ -48,7 +48,7 @@ def create_release_zip():
         version = "unknown"
 
     # 输出文件名
-    zip_filename = f"AI._v{version}.zip"
+    zip_filename = f"AI_v{version}.zip"
     zip_path = dist_dir / zip_filename
 
     print(f"正在创建发布包: {zip_filename}")
